@@ -22,7 +22,6 @@ import java.util.List;
 public class SecondFragment extends Fragment {
 
     private DataManager dm;
-    View v;
     
     public static SecondFragment newInstance(){
 
@@ -34,41 +33,31 @@ public class SecondFragment extends Fragment {
     public SecondFragment(){
     }
 
-
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.i("onCreate", "onCreate ran");
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+
+        // Inflate the layout for this fragment
+        View v = inflater.inflate(R.layout.fragment_second, container, false);
+        return v;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        Log.i("onCreate", "onCreateView ran");
-
-        // Inflate the layout for this fragment
-        v = inflater.inflate(R.layout.fragment_second, container, false);
+    public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(v, savedInstanceState);
 
         //Database
         dm = new DataManager(getContext());
 
         //Add data to array list
         addData(dm.selectAll(), v);
-
-        return v;
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
     }
 
     public void addData(Cursor c, View v){
 
         String donatorName;
         String donatorAmount;
-//        String listview_array[] = new String[0];
-        List<Donator> listview_array = new ArrayList<Donator>();
+        String donatorMethod;
+
         ListView myList;
 
         ArrayList<Donator> donators = new ArrayList<Donator>();
@@ -85,7 +74,8 @@ public class SecondFragment extends Fragment {
 
             donatorName = c.getString(1);
             donatorAmount = c.getString(2);
-            donators.add(new Donator(donatorName, donatorAmount));
+            donatorMethod = c.getString(3);
+            donators.add(new Donator(donatorName, donatorAmount, donatorMethod));
         }
 
         //Loop thru and store unique names
@@ -93,7 +83,7 @@ public class SecondFragment extends Fragment {
             String name = donators.get(i).getName(); //Get the name in object ArrayList
             if(!uniqueName.contains(name)) { //If the uniqueName array does not contain the name in donator
                 uniqueName.add(name); //Add the name
-                uniqueNameValue.add(new Donator(name, "0")); //Add uniqueName and value of 0 to uniqueNameValue array
+                uniqueNameValue.add(new Donator(name, "0", "")); //Add uniqueName and value of 0 to uniqueNameValue array
             }
         }
 
@@ -101,22 +91,19 @@ public class SecondFragment extends Fragment {
         for(int k = 0; k < donators.size(); k++) {
             String orignalArrayNames = donators.get(k).getName(); 			//Get the name of donators
             int currAmount = Integer.parseInt(donators.get(k).getAmount()); //Get the amount of the donator donates
+            String currMethod = donators.get(k).getMethod();
 
             for(int j = 0; j < uniqueNameValue.size(); j++) {
                 String uniqueNames = uniqueNameValue.get(j).getName(); //Get the unique name
 
                 //Check both the array for their name matches, if match, calculate the total that unique name donated
                 if(uniqueNames.equals(orignalArrayNames)) {
-//            		System.out.println("Name in uniqueNameValue array: " + uniqueNames);
                     int prevAmount = Integer.parseInt(uniqueNameValue.get(j).getAmount()); //Get the previous amount
-
-//            		System.out.println("Previous amount: " + prevAmount + " Current amount: " + currAmount);
                     int totalAmount = prevAmount + currAmount; //Add the previous amount and current amount
                     String totalAmountString = Integer.toString(totalAmount); //Convert the Integer into String in order to store in the object
 
                     uniqueNameValue.get(j).setAmount(totalAmountString); //Set the converted amount into the object
-
-//            		System.out.println("Total amount: " + uniqueNameValue.get(j).getAmount());
+                    uniqueNameValue.get(j).setMethod(currMethod);
                 }
             }
         }
@@ -125,6 +112,5 @@ public class SecondFragment extends Fragment {
         ArrayAdapter adapter = new ArrayAdapter<Donator>(getActivity(),android.R.layout.simple_list_item_1, uniqueNameValue);
         myList.setAdapter(adapter);
         adapter.notifyDataSetChanged();
-
     }
 }

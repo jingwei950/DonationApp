@@ -10,12 +10,18 @@ public class DataManager {
 
     private SQLiteDatabase db;
 
+    //Column names: id, name, amount, method
     public static final String TABLE_ROW_ID = "id";
     public static final String TABLE_ROW_NAME = "name";
     public static final String TABLE_ROW_AMOUNT = "amount";
+    public static final String TABLE_ROW_METHOD = "method";
 
+    //Table info:
+    //Database name: donator_db
+    //Database Version: 2 (version 1 have no method column)
+    //Table name: donator
     private static final String DB_NAME = "donator_db";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
     private static final String TABLE_DONATOR = "donator";
 
     public DataManager(Context context){
@@ -24,13 +30,16 @@ public class DataManager {
     }
 
     //Insert record
-    public void insert(String name, String amount){
+    public void insert(String name, String amount, String method){
         //Add all the details to the table
         Log.i("SQLQuery", "Insert function running");
-        //INSERT INTO TABLE_DONATOR (TABLE_ROW_NAME, TABLE_ROW_AMOUNT) VALUES ('john', '1000');
+        //INSERT INTO TABLE_DONATOR (TABLE_ROW_NAME, TABLE_ROW_AMOUNT, TABLE_ROW_METHOD) VALUES ('john', '1000', 'paypal');
         String query = "INSERT INTO " + TABLE_DONATOR
-                + "(" + TABLE_ROW_NAME + "," + TABLE_ROW_AMOUNT + ") "
-                + "VALUES (" + "'" + name + "'" + "," + "'" + amount + "'" + ");";
+                + "(" + TABLE_ROW_NAME + "," + TABLE_ROW_AMOUNT + "," + TABLE_ROW_METHOD +") "
+                + "VALUES ("
+                + "'" + name + "'" + ","
+                + "'" + amount + "'" + ","
+                + "'" + method + "'" + ");";
 
         Log.i("SQLQuery", "Insert Query: " + query);
 
@@ -60,10 +69,10 @@ public class DataManager {
     //Get records by searching name
     public Cursor searchName(String name){
 
-        //SELECT TABLE_ROW_ID, TABLE_ROW_NAME, TABLE_ROW_AMOUNT
+        //SELECT TABLE_ROW_ID, TABLE_ROW_NAME, TABLE_ROW_AMOUNT, TABLE_ROW_METHOD
         //FROM TABLE_DONATOR
         //WHERE TABLE_ROW_NAME = 'john';
-        String query = "SELECT " + TABLE_ROW_ID + ", " + TABLE_ROW_NAME + ", " + TABLE_ROW_AMOUNT
+        String query = "SELECT " + TABLE_ROW_ID + ", " + TABLE_ROW_NAME + ", " + TABLE_ROW_AMOUNT + ", " + TABLE_ROW_METHOD
                 + " FROM " + TABLE_DONATOR
                 + " WHERE " + TABLE_ROW_NAME + " = '" + name + "';";
 
@@ -82,20 +91,26 @@ public class DataManager {
             //CREATE TABLE TABLE_DONATOR (
             // TABLE_ROW_ID INT PRIMARY KEY AUTOINCREMENT NOT NULL,
             // TABLE_ROW_NAME TEXT NOT NULL,
-            // TABLE_ROW_AMOUNT TEXT NOT NULL
+            // TABLE_ROW_AMOUNT TEXT NOT NULL,
+            // TABLE_ROW_METHOD TEXT NOT NULL,
             //);
 
             String newTableQueryString = "CREATE TABLE " + TABLE_DONATOR +
                     "("
                     + TABLE_ROW_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
                     + TABLE_ROW_NAME + " TEXT NOT NULL, "
-                    + TABLE_ROW_AMOUNT + " TEXT NOT NULL" +
+                    + TABLE_ROW_AMOUNT + " TEXT NOT NULL, "
+                    + TABLE_ROW_METHOD + " TEXT NOT NULL" +
                     ");";
             db.execSQL(newTableQueryString);
+            Log.i("SQL", newTableQueryString);
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
+//            if (newVersion > oldVersion) {
+//                db.execSQL("ALTER TABLE " + TABLE_DONATOR + " ADD COLUMN " + TABLE_ROW_METHOD + " TEXT DEFAULT '' NOT NULL");
+//            }
         }
     }
 }

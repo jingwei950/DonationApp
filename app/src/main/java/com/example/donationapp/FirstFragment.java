@@ -34,16 +34,11 @@ public class FirstFragment extends Fragment {
     private RadioGroup paymentMethod;
     private ProgressBar progressBar;
     private NumberPicker amountPicker;
-    private NumberPicker amountPickerLand;
     private int totalDonated = 0;
     private TextView tvTotal;
     private EditText etAmount;
-    private TextView tvName;
-    EditText etName;
+    private EditText etName;
     private DataManager dm;
-    private Donator donator;
-    private RadioButton paypal;
-    private RadioButton direct;
 
     public static FirstFragment newInstance(){
 
@@ -54,34 +49,31 @@ public class FirstFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+       // Inflate the layout for this fragment
        View v = inflater.inflate(R.layout.fragment_first, container, false);
+       return v;
+    }
 
-        FragmentManager fragmentManager;
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(v, savedInstanceState);
 
         dm = new DataManager(getContext());
 
+        //Edit text for name
         etName = (EditText) v.findViewById(R.id.etName);
+        //Edit text for amount
         etAmount = (EditText) v.findViewById(R.id.etAmount);
-
-        //Create the button
-//        donateButton = (Button) container.findViewById(R.id.donateButton);
-//        donateButton = (Button) v.findViewById(R.id.donateButton);
-
-        if(donateButton != null){
-            Log.v("Donate", "Really got the donate button");
-        }
-
-
+        //Radio group that consists of payment methods: Paypal & direct
         paymentMethod = (RadioGroup) v.findViewById(R.id.paymentMethod);
+        //Progress bar to show target amount and current progress donated
         progressBar = (ProgressBar) v.findViewById(R.id.progressBar);
-//        amountPicker = new NumberPicker(MainActivity.this);
+        //Number picker for user to pick an amount
         amountPicker = (NumberPicker) v.findViewById(R.id.amountPicker);
+        //Create the button
+        donateButton = (Button) v.findViewById(R.id.donateButton);
 
-        if(amountPicker == null){
-            Log.v("test", "Number picker null");
-        }
         //Set the min and max values for the amount picker
         amountPicker.setMinValue(0);
         amountPicker.setMaxValue(1000);
@@ -89,28 +81,19 @@ public class FirstFragment extends Fragment {
         //Set the max of progress bar to 10000
         progressBar.setMax(10000);
 
-        // Inflate the layout for this fragment
-        return v;
-    }
-
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        donateButton = (Button) view.findViewById(R.id.donateButton);
-
+        //Set the onclick listener for the donate button
         donateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //Create new secondFragment instance when a button is clicked
                 SecondFragment secondFragment = new SecondFragment();
+                //Run the function to process of adding to the database
                 donateButtonPressed(view,etName,etAmount);
-                refreshFrag(secondFragment, newInstance());
+                //Refresh the fragment on screen to get the latest amount each donator donates
+                refreshFrag(secondFragment);
             }
         });
     }
-
 
     public void donateButtonPressed(View view, EditText etName, EditText etAmount){
 
@@ -118,7 +101,6 @@ public class FirstFragment extends Fragment {
         int amount = 0;
         String editAmount = etAmount.getText().toString();
 
-        Log.i("editText", ""+editAmount);
 
         //Handle which user input is used
         if(etAmount.getText().toString().equals("")){ //When the user uses amount picker
@@ -157,7 +139,7 @@ public class FirstFragment extends Fragment {
         //Convert amount to string for database
         String stringAmount = Integer.toString(amount);
         //Insert record
-        dm.insert(etName.getText().toString(), stringAmount);
+        dm.insert(etName.getText().toString(), stringAmount, method);
 
         //Reset input fields back to 0 and blank
         amountPicker.setValue(0);
@@ -171,14 +153,11 @@ public class FirstFragment extends Fragment {
 //        showData(dm.selectAll());
     }
 
-    public void refreshFrag(SecondFragment secondFragment, FirstFragment firstFragment){
+    public void refreshFrag(SecondFragment secondFragment){
+        //Refresh the second fragment for history to update after user donate
         getFragmentManager().beginTransaction()
-                .detach(firstFragment)
-                .attach(firstFragment)
-                .commit();
-        getFragmentManager().beginTransaction()
-                .replace(R.id.fragmentContainerView2, secondFragment)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .replace(R.id.fragmentContainerView2, secondFragment) //"Refresh" the fragment
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE) //Animation of fade
                 .commit();
     }
 
@@ -196,6 +175,7 @@ public class FirstFragment extends Fragment {
 
         String donatorName;
         String donatorAmount;
+        String donatorMethod;
 
         while (c.moveToNext())
         {
@@ -203,7 +183,8 @@ public class FirstFragment extends Fragment {
 
             donatorName = c.getString(1);
             donatorAmount = c.getString(2);
-            donators.add(new Donator(donatorName, donatorAmount));
+            donatorMethod = c.getString(3);
+            donators.add(new Donator(donatorName, donatorAmount, donatorMethod));
         }
 
         //Loop thru and store unique names
@@ -211,7 +192,7 @@ public class FirstFragment extends Fragment {
             String name = donators.get(i).getName(); //Get the name in object ArrayList
             if(!uniqueName.contains(name)) { //If the uniqueName array does not contain the name in donator
                 uniqueName.add(name); //Add the name
-                uniqueNameValue.add(new Donator(name, "0")); //Add uniqueName and value of 0 to uniqueNameValue array
+                uniqueNameValue.add(new Donator(name, "0", "")); //Add uniqueName and value of 0 to uniqueNameValue array
             }
         }
 
@@ -219,29 +200,22 @@ public class FirstFragment extends Fragment {
         for(int k = 0; k < donators.size(); k++) {
             String orignalArrayNames = donators.get(k).getName(); 			//Get the name of donators
             int currAmount = Integer.parseInt(donators.get(k).getAmount()); //Get the amount of the donator donates
+            String currMethod = donators.get(k).getMethod();
 
             for(int j = 0; j < uniqueNameValue.size(); j++) {
                 String uniqueNames = uniqueNameValue.get(j).getName(); //Get the unique name
 
                 //Check both the array for their name matches, if match, calculate the total that unique name donated
                 if(uniqueNames.equals(orignalArrayNames)) {
-//            		System.out.println("Name in uniqueNameValue array: " + uniqueNames);
-                    int prevAmount = Integer.parseInt(uniqueNameValue.get(j).getAmount()); //Get the previous amount
 
-//            		System.out.println("Previous amount: " + prevAmount + " Current amount: " + currAmount);
+                    int prevAmount = Integer.parseInt(uniqueNameValue.get(j).getAmount()); //Get the previous amount
                     int totalAmount = prevAmount + currAmount; //Add the previous amount and current amount
                     String totalAmountString = Integer.toString(totalAmount); //Convert the Integer into String in order to store in the object
 
                     uniqueNameValue.get(j).setAmount(totalAmountString); //Set the converted amount into the object
-
-//            		System.out.println("Total amount: " + uniqueNameValue.get(j).getAmount());
+                    uniqueNameValue.get(j).setMethod(currMethod);
                 }
             }
         }
-        for(int b = 0; b<uniqueNameValue.size();b++){
-            Log.i("uniqueNameValueArray",  ""+uniqueNameValue.get(b));
-        }
-
-        Log.i("DonatorArray", ""+donators);
     }
 }
