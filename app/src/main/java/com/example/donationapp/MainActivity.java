@@ -41,7 +41,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_main);
 
-
+        //Test
+        TextView name;
+        
         //Detach & attach for updating the fragment views
         if (savedInstanceState == null) {
             FirstFragment firstFragment = FirstFragment.newInstance();
