@@ -60,6 +60,7 @@ public class SecondFragment extends Fragment {
 
         ListView myList;
 
+        //For storing donators with their name, amount donated and donation method
         ArrayList<Donator> donators = new ArrayList<Donator>();
 
         //For storing all names without amount
@@ -108,9 +109,13 @@ public class SecondFragment extends Fragment {
             }
         }
 
+        //Get the list view
         myList = (ListView) v.findViewById(R.id.listView1);
+        //Get the array adapter
         ArrayAdapter adapter = new ArrayAdapter<Donator>(getActivity(),android.R.layout.simple_list_item_1, uniqueNameValue);
+        //Set the array adapter to the list view
         myList.setAdapter(adapter);
+        //Notify the adapter when the data changes
         adapter.notifyDataSetChanged();
     }
 }
