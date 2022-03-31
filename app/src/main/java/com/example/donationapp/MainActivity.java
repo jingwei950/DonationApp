@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
 
         //Test
         TextView name;
+        //Test 2
+        TextView password;
         
         //Detach & attach for updating the fragment views
         if (savedInstanceState == null) {
